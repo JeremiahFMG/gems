@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Button Exercise</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-primary: #007028;
+    --green-secondary: #49c442;
+    --green-light: #e6f5ec;
+    --dark: #333333;
+    --ominous-border: #c0392b;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--green-light);
+    color: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 0.8s ease;
+    overflow-x: hidden;
+  }
+
+  /* Disclaimer Banner */
+  .disclaimer {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    background: #fff3cd;
+    border-bottom: 2px solid #ffc107;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #664d03;
+    font-weight: 500;
+  }
+
+  /* Progress Bar */
+  .progress-wrapper {
+    width: 100%;
+    height: 6px;
+    background: rgba(0,0,0,0.08);
+    position: sticky;
+    top: 48px;
+    z-index: 99;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green-secondary), var(--green-primary));
+    transition: width 0.45s ease;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* Main Container */
+  .container {
+    max-width: 620px;
+    width: 92%;
+    margin: 60px auto 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  /* Phase Label */
+  .phase-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #999;
+    margin-bottom: 8px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .phase-label.visible { opacity: 1; }
+
+  h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--green-primary);
+    margin-bottom: 8px;
+    text-align: center;
+    transition: color 0.6s ease;
+  }
+  .subtitle {
+    font-size: 1.05rem;
+    color: #777;
+    margin-bottom: 36px;
+    text-align: center;
+    min-height: 1.5em;
+  }
+
+  /* Statement Card */
+  .statement-card {
+    width: 100%;
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    text-align: center;
+    font-size: 1.12rem;
+    line-height: 1.6;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.45s ease, transform 0.45s ease, background 0.6s ease, border 0.4s ease;
+    border: 2px solid transparent;
+  }
+  .statement-card.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .statement-card.consent-style {
+    border-color: #d4a574;
+    background: #fdf8f3;
+  }
+  .statement-card.submit-style {
+    border-color: var(--ominous-border);
+    background: #fdf2f0;
+  }
+  .statement-card.submit-style ul {
+    text-align: left;
+    list-style: none;
+    padding: 0;
+  }
+  .statement-card.submit-style ul li {
+    padding: 6px 0;
+    padding-left: 22px;
+    position: relative;
+    font-size: 0.97rem;
+  }
+  .statement-card.submit-style ul li::before {
+    content: "\2022";
+    position: absolute;
+    left: 4px;
+    color: var(--ominous-border);
+    font-weight: bold;
+  }
+
+  /* Counter */
+  .counter {
+    font-size: 0.95rem;
+    color: #aaa;
+    margin-bottom: 20px;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
+  }
+
+  /* The Button */
+  .main-btn {
+    display: inline-block;
+    padding: 18px 64px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--green-primary);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.5s ease;
+    box-shadow: 0 4px 18px rgba(0,112,40,0.25);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    animation: pulse 2s infinite;
+    position: relative;
+  }
+  .main-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 26px rgba(0,112,40,0.35);
+  }
+  .main-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 10px rgba(0,112,40,0.2);
+    animation: none;
+  }
+  .main-btn.consent {
+    background: #d35400;
+    box-shadow: 0 4px 18px rgba(211,84,0,0.3);
+    animation-name: pulseOrange;
+  }
+  .main-btn.consent:hover { box-shadow: 0 6px 26px rgba(211,84,0,0.4); }
+  .main-btn.submit {
+    background: var(--ominous-border);
+    box-shadow: 0 4px 18px rgba(192,57,43,0.3);
+    animation-name: pulseRed;
+  }
+  .main-btn.submit:hover { box-shadow: 0 6px 26px rgba(192,57,43,0.4); }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(0,112,40,0.25); }
+    50% { box-shadow: 0 4px 30px rgba(0,112,40,0.5); }
+  }
+  @keyframes pulseOrange {
+    0%, 100% { box-shadow: 0 4px 18px rgba(211,84,0,0.25); }
+    50% { box-shadow: 0 4px 30px rgba(211,84,0,0.5); }
+  }
+  @keyframes pulseRed {
+    0%, 100% { box-shadow: 0 4px 18px rgba(192,57,43,0.25); }
+    50% { box-shadow: 0 4px 30px rgba(192,57,43,0.5); }
+  }
+
+  /* Reminder text */
+  .reminder {
+    margin-top: 22px;
+    font-size: 0.78rem;
+    color: #bbb;
+    font-style: italic;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    min-height: 1.2em;
+  }
+  .reminder.show { opacity: 1; }
+
+  /* Debrief */
+  .debrief {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+  .debrief.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .debrief h1 {
+    font-size: 1.75rem;
+    margin-bottom: 24px;
+    text-align: center;
+    color: var(--green-primary);
+  }
+  .debrief p, .debrief li {
+    font-size: 1.02rem;
+    line-height: 1.75;
+    margin-bottom: 16px;
+    color: #444;
+  }
+  .debrief .insight-box {
+    background: #fff;
+    border-left: 4px solid var(--green-secondary);
+    border-radius: 8px;
+    padding: 20px 22px;
+    margin: 24px 0;
+    box-shadow: 0 1px 10px rgba(0,0,0,0.04);
+  }
+  .debrief .insight-box .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  .debrief .insight-box .value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .debrief .insight-box .stmt {
+    font-style: italic;
+    font-weight: 400;
+    color: #666;
+    margin-top: 4px;
+    font-size: 0.92rem;
+  }
+  .debrief ul {
+    margin: 16px 0 16px 0;
+    padding: 0;
+    list-style: none;
+  }
+  .debrief ul li {
+    padding-left: 24px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .debrief ul li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--green-secondary);
+    border-radius: 50%;
+  }
+  .debrief .final-note {
+    text-align: center;
+    font-style: italic;
+    color: #999;
+    font-size: 0.88rem;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+  }
+  .restart-btn {
+    display: block;
+    margin: 30px auto 0;
+    padding: 14px 44px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--green-primary);
+    background: #fff;
+    border: 2px solid var(--green-primary);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .restart-btn:hover {
+    background: var(--green-primary);
+    color: #fff;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .container { margin-top: 36px; }
+    h1 { font-size: 1.5rem; }
+    .main-btn { padding: 16px 48px; font-size: 1.05rem; }
+    .statement-card { padding: 24px 18px; font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Disclaimer -->
+<div class="disclaimer">
+  ⚠️ This is a symbolic exercise. No data is collected, stored, or transmitted. Every statement is fictional. This exists purely to demonstrate a psychological principle.
+</div>
+
+<!-- Progress bar -->
+<div class="progress-wrapper"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="container" id="gameContainer">
+  <div class="phase-label" id="phaseLabel"></div>
+  <h1 id="title">Can you click a button 20 times?</h1>
+  <div class="subtitle" id="subtitle">That’s it. Just 20 clicks. Simple, right?</div>
+  <div class="statement-card" id="statementCard"></div>
+  <div class="counter" id="counter">0 / 20</div>
+  <button class="main-btn" id="mainBtn" onclick="handleClick()">Click</button>
+  <div class="reminder" id="reminder"></div>
+</div>
+
+<div class="container hidden" id="debriefContainer">
+  <div class="debrief" id="debrief"></div>
+</div>
+
+<script>
+  const agreeStatements = [
+    "Pineapple on pizza is acceptable",
+    "Mondays aren’t that bad",
+    "I have pretended to laugh at a joke I didn’t find funny",
+    "I have taken a sick day when I wasn’t really sick",
+    "I have smiled through a meeting I thought was a complete waste of time",
+    "I have taken credit for work that wasn’t entirely mine",
+    "I have judged a colleague based on first impressions and never revised that opinion",
+    "I have avoided giving honest feedback because it was easier to say nothing",
+    "I have pretended to understand something important rather than admit I was lost",
+    "I sometimes doubt whether I truly deserve my role",
+    "I have let someone believe something untrue about me because it made me look better",
+    "I have watched someone struggle and chosen not to help because it wasn’t my problem",
+    "I have privately hoped a colleague would fail so I could feel better about myself",
+    "I have broken someone’s trust and never acknowledged it",
+    "There are things I’ve done professionally that I hope no one ever finds out about"
+  ];
+
+  const consentStatements = [
+    "I consent to my browsing history being reviewed by my team",
+    "I consent to my private messages being read by my manager",
+    "I consent to my deleted files being recovered and examined",
+    "I consent to a full audit of every promise I’ve made and whether I kept it",
+    "I consent to my internal thoughts about colleagues being shared with them directly",
+    "I consent to every lie I’ve told at work being documented and made visible",
+    "I consent to a recording of my most embarrassing professional moment being shown at the next all-hands meeting",
+    "I consent to everything I’ve agreed to above being attributed to me by name"
+  ];
+
+  const TOTAL_CLICKS = 44;
+  const PHASE1_END = 20;
+  const PHASE2_END = 35;
+  const PHASE3_END = 43;
+
+  let clickCount = 0;
+  let lastClickTime = Date.now();
+  let longestPause = 0;
+  let longestPauseStatement = "";
+  let longestPauseClick = 0;
+
+  const el = {
+    progress: document.getElementById("progressBar"),
+    phaseLabel: document.getElementById("phaseLabel"),
+    title: document.getElementById("title"),
+    subtitle: document.getElementById("subtitle"),
+    card: document.getElementById("statementCard"),
+    counter: document.getElementById("counter"),
+    btn: document.getElementById("mainBtn"),
+    reminder: document.getElementById("reminder"),
+    gameContainer: document.getElementById("gameContainer"),
+    debriefContainer: document.getElementById("debriefContainer"),
+    debrief: document.getElementById("debrief")
+  };
+
+  function updateProgress() {
+    el.progress.style.width = ((clickCount / TOTAL_CLICKS) * 100) + "%";
+  }
+
+  function showCard(text, extraClass) {
+    el.card.classList.remove("show", "consent-style", "submit-style");
+    void el.card.offsetWidth;
+    el.card.innerHTML = text;
+    if (extraClass) el.card.classList.add(extraClass);
+    setTimeout(() => el.card.classList.add("show"), 30);
+  }
+
+  function getCurrentStatement() {
+    if (clickCount > PHASE1_END && clickCount <= PHASE2_END) {
+      return agreeStatements[clickCount - PHASE1_END - 1];
+    }
+    if (clickCount > PHASE2_END && clickCount <= PHASE3_END) {
+      return consentStatements[clickCount - PHASE2_END - 1];
+    }
+    return "";
+  }
+
+  function getCardWarmth(index, total) {
+    const t = index / Math.max(total - 1, 1);
+    const r = 255;
+    const g = Math.round(255 - t * 20);
+    const b = Math.round(255 - t * 50);
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+  function handleClick() {
+    const now = Date.now();
+    const pause = (now - lastClickTime) / 1000;
+
+    clickCount++;
+    updateProgress();
+
+    // Track longest pause (only in phases 2-4)
+    if (clickCount > PHASE1_END && pause > longestPause) {
+      longestPause = pause;
+      longestPauseStatement = getCurrentStatement();
+      longestPauseClick = clickCount;
+    }
+
+    lastClickTime = now;
+
+    // PHASE 1: Simple clicks (1-20)
+    if (clickCount <= PHASE1_END) {
+      el.counter.textContent = clickCount + " / 20";
+      if (clickCount === PHASE1_END) {
+        setTimeout(enterPhase2, 500);
+      }
+      return;
+    }
+
+    // PHASE 2: I Agree (21-35)
+    if (clickCount <= PHASE2_END) {
+      const idx = clickCount - PHASE1_END;
+      showCard("“" + agreeStatements[idx - 1] + "”");
+      el.card.style.background = getCardWarmth(idx - 1, agreeStatements.length);
+      el.counter.textContent = idx + " / " + agreeStatements.length;
+      if (clickCount === PHASE2_END) {
+        setTimeout(enterPhase3, 500);
+      }
+      return;
+    }
+
+    // PHASE 3: I Consent (36-43)
+    if (clickCount <= PHASE3_END) {
+      const idx = clickCount - PHASE2_END;
+      showCard("“" + consentStatements[idx - 1] + "”", "consent-style");
+      el.counter.textContent = idx + " / " + consentStatements.length;
+      if (clickCount === PHASE3_END) {
+        setTimeout(enterPhase4, 500);
+      }
+      return;
+    }
+
+    // PHASE 4: Submit (click 44)
+    if (clickCount === TOTAL_CLICKS) {
+      enterDebrief();
+    }
+  }
+
+  function enterPhase2() {
+    el.phaseLabel.textContent = "Phase 2 of 4";
+    el.phaseLabel.classList.add("visible");
+    el.title.textContent = "Now agree with a few statements.";
+    el.subtitle.textContent = "Still just clicking a button.";
+    el.btn.textContent = "I Agree";
+    showCard("“" + agreeStatements[0] + "”");
+    el.counter.textContent = "0 / " + agreeStatements.length;
+    el.reminder.textContent = "Remember: this is symbolic. None of this is real.";
+    el.reminder.classList.add("show");
+  }
+
+  function enterPhase3() {
+    document.body.style.background = "#f5f3f0";
+    el.phaseLabel.textContent = "Phase 3 of 4";
+    el.title.textContent = "Now give your consent.";
+    el.title.style.color = "#d35400";
+    el.subtitle.textContent = "Same button. Same exercise. Nothing has changed.";
+    el.btn.textContent = "I Consent";
+    el.btn.classList.remove("submit");
+    el.btn.classList.add("consent");
+    showCard("“" + consentStatements[0] + "”", "consent-style");
+    el.counter.textContent = "0 / " + consentStatements.length;
+    el.reminder.textContent = "Still symbolic. Still not real. Just click the button.";
+  }
+
+  function enterPhase4() {
+    document.body.style.background = "#ece8e6";
+    el.phaseLabel.textContent = "Phase 4 of 4";
+    el.title.textContent = "One last click.";
+    el.title.style.color = "#c0392b";
+    el.subtitle.textContent = "";
+    el.btn.textContent = "Submit";
+    el.btn.classList.remove("consent");
+    el.btn.classList.add("submit");
+    el.counter.textContent = "";
+
+    const summaryHTML = '<div style="text-align:left;">' +
+      '<p style="margin-bottom:14px;font-weight:600;font-size:1.05rem;">By clicking Submit, you confirm the following:</p>' +
+      '<ul>' +
+      '<li>All 43 statements you agreed to will be compiled into a document</li>' +
+      '<li>This document will be attributed to you by your full name</li>' +
+      '<li>A copy will be sent directly to the CEO</li>' +
+      '<li>A second copy will be shared with your entire team</li>' +
+      '<li>You will be invited to discuss each statement in your next performance review</li>' +
+      '</ul></div>';
+    showCard(summaryHTML, "submit-style");
+
+    el.reminder.textContent = "This is still just a button. This is still symbolic. No data exists. Just click it.";
+  }
+
+  function enterDebrief() {
+    el.gameContainer.classList.add("hidden");
+    el.debriefContainer.classList.remove("hidden");
+    document.body.style.background = "linear-gradient(170deg, #e6f5ec 0%, #d4edda 100%)";
+
+    const pauseText = longestPause >= 1
+      ? longestPause.toFixed(1) + " seconds"
+      : "less than a second";
+
+    const stmtDisplay = longestPauseStatement
+      ? '“' + longestPauseStatement + '”'
+      : 'No significant pause detected — impressive resolve.';
+
+    el.debrief.innerHTML =
+      '<h1>You just experienced a mental barrier.</h1>' +
+
+      '<p>The task never changed. From the first click to the last, you were pressing a button on a screen that does absolutely nothing.</p>' +
+
+      '<p><strong>No data was collected. No statements were recorded. No document exists. There is no submission.</strong></p>' +
+
+      '<p>But somewhere along the way, a simple physical action became psychologically impossible — or at the very least, deeply uncomfortable.</p>' +
+
+      '<p>That’s the power of <strong>mental framing</strong>. The button didn’t change. The stakes didn’t change. <em>You</em> didn’t change. But the story around the action changed — and that was enough to override your ability to do something trivially simple.</p>' +
+
+      '<div class="insight-box">' +
+        '<div class="label">Your longest hesitation</div>' +
+        '<div class="value">' + pauseText + '</div>' +
+        '<div class="stmt">' + stmtDisplay + '</div>' +
+      '</div>' +
+
+      '<p>This is what happens every day in workplaces everywhere:</p>' +
+      '<ul>' +
+        '<li>People don’t speak up — not because they can’t, but because the <em>imagined consequences</em> feel real</li>' +
+        '<li>People don’t ask for help — not because it’s unavailable, but because the story of “what it means” stops them</li>' +
+        '<li>People don’t challenge a process — not because they agree with it, but because the friction of being seen as difficult outweighs the discomfort of compliance</li>' +
+      '</ul>' +
+
+      '<p>The barriers aren’t in the system. They’re in the <strong>meaning we attach to the action</strong>.</p>' +
+
+      '<p>And if a fictional button on a screen with a written disclaimer can generate that much resistance… imagine what real organisational language, real power dynamics, and real social consequences do to people every single day.</p>' +
+
+      '<div class="final-note">This exercise was designed to be felt, not just understood.<br>If it made you hesitate — <strong>that IS the lesson.</strong></div>' +
+
+      '<button class="restart-btn" onclick="restartGame()">Start Over</button>';
+
+    el.progress.style.width = "100%";
+    setTimeout(() => el.debrief.classList.add("show"), 50);
+  }
+
+  function restartGame() {
+    clickCount = 0;
+    lastClickTime = Date.now();
+    longestPause = 0;
+    longestPauseStatement = "";
+    longestPauseClick = 0;
+
+    document.body.style.background = "";
+    el.progress.style.width = "0%";
+    el.phaseLabel.textContent = "";
+    el.phaseLabel.classList.remove("visible");
+    el.title.textContent = "Can you click a button 20 times?";
+    el.title.style.color = "";
+    el.subtitle.textContent = "That’s it. Just 20 clicks. Simple, right?";
+    el.btn.textContent = "Click";
+    el.btn.className = "main-btn";
+    el.counter.textContent = "0 / 20";
+    el.card.classList.remove("show", "consent-style", "submit-style");
+    el.card.innerHTML = "";
+    el.card.style.background = "";
+    el.reminder.textContent = "";
+    el.reminder.classList.remove("show");
+
+    el.debriefContainer.classList.add("hidden");
+    el.debrief.classList.remove("show");
+    el.gameContainer.classList.remove("hidden");
+  }
+</script>
+</body>
+</html>
